@@ -1,40 +1,54 @@
+import time
 from selenium import webdriver
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.wait import WebDriverWait
+import allure
+import pytest
 
-class TestHotel(object):
+
+class TestHootel(object):
     def setup_method(self):
-        service = Service(executable_path=ChromeDriverManager().install())
+        URL = 'http://hotel-v3.progmasters.hu/'
         options = Options()
         options.add_experimental_option("detach", True)
-        options.add_argument('--headless')
+            options.add_argument('--headless')
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-dev-shm-usage')
-        self.browser = webdriver.Chrome(service=service, options=options)
-        URL = "http://hotel-v2.progmasters.hu/"
+        self.browser = webdriver.Chrome(options=options)
         self.browser.get(URL)
         self.browser.maximize_window()
 
     def teardown_method(self):
         self.browser.quit()
 
-    def test_open(self):
-        page_name = self.browser.find_element(By.ID, 'nav-index')
-        assert page_name.is_displayed()
-        assert page_name.text == "HOOTEL"
-
-    def test_login(self):
-        signin_btn = self.browser.find_element(By.CSS_SELECTOR, 'a[class="nav-link"]')
-        signin_btn.click()
-        email_input = WebDriverWait(self.browser, 5).until(EC.presence_of_element_located((By.ID, 'email')))
-        password_input = self.browser.find_element(By.ID, 'password')
-        login_btn = self.browser.find_element(By.CSS_SELECTOR, 'button[name="submit"]')
-        email_input.send_keys('andi.teszt2021@gmail.com')
-        password_input.send_keys('tesztelek2021')
+    @pytest.mark.parametrize("email, password", [('hiwasi1765@wisnick.com', 'tesztelek2021'), ('', '')])
+    @allure.title("Hootel Login")
+    @allure.description("A belépés tesztelése")
+    @allure.severity(allure.severity_level.TRIVIAL)
+    @allure.tag("login")
+    def test_login(self, email, password):
+        login_btn = self.browser.find_element(By.XPATH, '//a[@class="nav-link"]')
         login_btn.click()
-        profile_id = WebDriverWait(self.browser, 5).until(EC.presence_of_element_located((By.ID, 'profile')))
-        assert profile_id.text == "Profilom (Andrea)"
+
+        email_input = self.browser.find_element(By.ID, 'email')
+        email_input.send_keys(email)
+
+        password_input = self.browser.find_element(By.ID, 'password')
+        password_input.send_keys(password)
+
+        submit_btn = self.browser.find_element(By.NAME, 'submit')
+        submit_btn.click()
+        time.sleep(1)
+
+        logout_btn = self.browser.find_element(By.ID, 'logout-link')
+
+        assert logout_btn.text == "Kilépés"
+
+    def test_hotel_list(self):
+        hotel_list_btn = self.browser.find_element(By.XPATH, '//button[@class="btn btn-outline-primary btn-block"]')
+        hotel_list_btn.click()
+        time.sleep(1)
+
+        hotel_list = self.browser.find_elements(By.XPATH, '//h4[@style="cursor: pointer"]')
+        assert len(hotel_list) != 0
+        assert len(hotel_list) == 10
