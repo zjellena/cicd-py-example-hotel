@@ -11,9 +11,6 @@ class TestHootel(object):
         URL = 'http://hotel-v3.progmasters.hu/'
         options = Options()
         options.add_experimental_option("detach", True)
-        options.add_argument('--headless')
-        options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
         self.browser = webdriver.Chrome(options=options)
         self.browser.get(URL)
         self.browser.maximize_window()
